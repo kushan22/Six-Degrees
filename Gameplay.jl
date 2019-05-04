@@ -7,6 +7,7 @@ export newgame
 const DIFFICULTY_EASY = 2 
 const DIFFICULTY_MEDIUM = 4 
 const DIFFICULTY_HARD = 6 
+const MAX_NUMBER_OF_STEPS = 10
  
 function newgame(difficulty = DIFFICULTY_HARD) 
   articles = Article[] 

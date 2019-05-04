@@ -4,11 +4,7 @@ pkg"activate ."
 include("Database.jl") 
 include("wikipedia.jl") 
 include("Gameplay.jl") 
+include("GameSession.jl")
+include("WebApp.jl") 
  
-using .wikipedia, .Gameplay 
- 
-articles = newgame(Gameplay.DIFFICULTY_EASY) 
- 
-for article in articles 
-  println(article.title) 
-end 
+using .wikipedia, .Gameplay, .GameSession, .WebApp 
