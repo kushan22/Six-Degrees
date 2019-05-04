@@ -1,26 +1,27 @@
 module wikipedia 
- 
 using HTTP, Gumbo, Cascadia 
 import Cascadia: matchFirst 
-include("Articles.jl")
-using .Articles
+ 
+include("Articles.jl") 
+using .Articles 
  
 const PROTOCOL = "https://" 
 const DOMAIN_NAME = "en.m.wikipedia.org" 
 const RANDOM_PAGE_URL = PROTOCOL * DOMAIN_NAME * "/wiki/Special:Random" 
  
-export fetchrandom, fetchpage, articleinfo 
+export fetchrandom, fetchpage, articleinfo, persistedarticle 
  
 function fetchpage(url) 
   url = startswith(url, "/") ? buildurl(url) : url 
- 
   response = HTTP.get(url) 
+  content = if response.status == 200 && length(response.body) > 0 
+              String(response.body) 
+            else 
+              "" 
+            end 
+  relative_url = collect(eachmatch(r"/wiki/(.*)$", (response.request.parent == nothing ? url : Dict(response.request.parent.headers)["Location"])))[1].match 
  
-  if response.status == 200 && length(response.body) > 0 
-    String(response.body) 
-  else  
-    "" 
-  end 
+  content, relative_url 
 end 
  
 function extractlinks(elem) 
@@ -52,12 +53,14 @@ end
  
 function articleinfo(content) 
   dom = articledom(content) 
+  (content, extractlinks(dom.root), extracttitle(dom.root), extractimage(dom.root)) 
+end 
  
-  Article(content,
-          extractlinks(dom.root),
-          extracttitle(dom.root),
-          extractimage(dom.root))
-
+function persistedarticle(article_content, url) 
+  article = Article(articleinfo(article_content)..., url) 
+  save(article) 
+ 
+  article 
 end 
  
 function buildurl(article_url) 
